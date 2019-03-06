@@ -12,6 +12,12 @@
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items>
+        <v-btn flat :to="{name: 'master-detail'}">
+          master-detail
+        </v-btn>
+        <v-btn flat :to="{name: 'tree-view'}">
+          TreeView
+        </v-btn>
         <v-btn flat :to="{name: 'split'}">
           Split
         </v-btn>

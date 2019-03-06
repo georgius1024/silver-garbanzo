@@ -22,6 +22,16 @@ export default new Router({
       component: () => import(/* webpackChunkName: "split" */ './views/split-responsive.vue')
     },
     {
+      path: '/tree-view',
+      name: 'tree-view',
+      component: () => import(/* webpackChunkName: "tree-view" */ './views/tree-view.vue')
+    },
+    {
+      path: '/master-detail',
+      name: 'master-detail',
+      component: () => import(/* webpackChunkName: "master-detail" */ './views/master-detail.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting
