@@ -1,18 +1,16 @@
 <template lang="pug">
-  .tree-view-node
+  tree-view-node
     .node-elements(
       :selected="nodeIsSelected"
       :expanded="nodeIsExpanded"
       @click="toggleSelected"
     )
-      template(v-if="nodeHasOpenControl")
-        template(v-if="loading")
-          v-progress-circular(indeterminate, size="24", width="2")
-        template(v-else)
-          v-icon(
-            class="open-control"
-            @click.stop="toggleExpanded"
-          ) chevron_right
+      v-icon(
+        v-if="nodeHasOpenControl"
+        class="open-control"
+        @click.stop="toggleExpanded"
+      )
+        chevron_right
       img(
         v-if="nodeHasHandleControl"
         class="handle-control"
@@ -56,13 +54,12 @@
           :parentPath="nodePath"
           :selected-path="selectedPath"
           :expanded-path="expandedPath"
-          :id-field="idField"
-          :text-field="textField"
-          :children-field="childrenField"
-          :node-type-field="nodeTypeField"
-          :read-only-field="readOnlyField"
-          :icon-field="iconField"
-          :async-load-field="asyncLoadField"
+          :idField="idField"
+          :textField="textField"
+          :childrenField="childrenField"
+          :nodeTypeField="nodeTypeField"
+          :readOnlyField="readOnlyField"
+          :iconField="iconField"
           :sortable="sortable"
           :update-button="updateButton"
           :delete-button="deleteButton"
@@ -77,9 +74,7 @@
         )
           template(v-slot:controls="child")
             slot(name="controls" :data="child.data")
-  
 </template>
-
 <script type="text/babel">
 import Vue from 'vue'
 import draggable from 'vuedraggable'
@@ -88,11 +83,6 @@ import _cloneDeep from 'lodash.clonedeep'
 import './tree-view.scss'
 export default Vue.extend({
   name: 'TreeViewNode',
-  data () {
-    return {
-      loading: false
-    }
-  },
   props: {
     parentPath: {
       type: String,
@@ -134,10 +124,6 @@ export default Vue.extend({
     iconField: {
       type: String,
       default: 'icon'
-    },
-    asyncLoadField: {
-      type: String,
-      required: false
     },
     sortable: {
       type: Boolean,
@@ -220,9 +206,6 @@ export default Vue.extend({
     nodeHasDeleteButton () {
       return !this.nodeIsReadonly && this.deleteButton
     },
-    nodeHasAsyncLoad () {
-      return this.asyncLoadField && typeof this.data[this.asyncLoadField] === 'function'
-    },
     nodePath () {
       return [this.parentPath, this.nodeId].filter(e => !!e).join('/')
     },
@@ -233,21 +216,11 @@ export default Vue.extend({
     }
   },
   methods: {
-    async toggleExpanded () {
+    toggleExpanded () {
       if (this.nodeIsExpanded) {
         this.emitExpanded(this.parentPath)
       } else {
-        if (this.nodeHasAsyncLoad) {
-          try {
-            this.loading = true
-            this.data[this.childrenField] = this.data[this.childrenField] || await this.data[this.asyncLoadField](this.nodeId)
-          } finally {
-            this.$set(this, 'loading', false)
-            this.emitExpanded(this.nodePath)
-          }
-        } else {
-          this.emitExpanded(this.nodePath)
-        }
+        this.emitExpanded(this.nodePath)
       }
     },
 
@@ -266,7 +239,7 @@ export default Vue.extend({
       this.selectedAt = new Date().valueOf()
 
       if (!this.selected) {
-        // РџРѕРІС‚РѕСЂРЅС‹Рµ РєР»РёРєРё РёРіРЅРѕСЂРёСЂСѓСЋС‚СЃСЏ
+        // Повторные клики игнорируются
         this.emitSelected(this.nodePath)
         this.toggleExpanded()
       }

@@ -6,8 +6,8 @@
       @input="masterSorted"
     )
       master-node(
-        v-for="(root, index) in roots"
-        :key="index"
+        v-for="(root, index) in roots",
+        :key="index",
         :data="root",
         parent-id=""
         :selected-path="selectedPath"

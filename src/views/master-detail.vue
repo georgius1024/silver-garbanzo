@@ -20,7 +20,7 @@
 </template>
 <script>
 import MasterDetail from '../components/master-detail'
-import ControlButton from '../components/tree/control-button'
+import ControlButton from '../components/tree-view/control-button'
 export default {
   name: 'MasterDetailView',
   components: {

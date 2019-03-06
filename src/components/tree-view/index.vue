@@ -1,8 +1,8 @@
 <template lang="pug">
   .tree-view  
-    draggable()
+    draggable(
       class="node-children"
-      :value="children"
+      :value="roots"
       :options="sortableOptions"
       @input="sorted"
       ref="sortable"
@@ -10,16 +10,16 @@
       tree-view-node(
         v-for="(node, index) in roots"
         :key="index"
-        :data="child"
-        :parentPath="nodePath"
+        :data="node"
         :selected-path="selectedPath"
         :expanded-path="expandedPath"
-        :idField="idField"
-        :textField="textField"
-        :childrenField="childrenField"
-        :nodeTypeField="nodeTypeField"
-        :readOnlyField="readOnlyField"
-        :iconField="iconField"
+        :id-field="idField"
+        :text-field="textField"
+        :children-field="childrenField"
+        :node-type-field="nodeTypeField"
+        :read-only-field="readOnlyField"
+        :icon-field="iconField"
+        :async-load-field="asyncLoadField"
         :sortable="sortable"
         :update-button="updateButton"
         :delete-button="deleteButton"
@@ -28,7 +28,7 @@
         @selected="emitSelected"
         @update="emitUpdate"
         @delete="emitDelete"
-        @sort="emitSort"
+        @sort="childSorted(index, $event)"
         @click="emitClick"
         @dblclick="emitDblClick"
       )
@@ -38,31 +38,36 @@
 
 <script type="text/babel">
 import _cloneDeep from 'lodash.clonedeep'
+import draggable from 'vuedraggable'
 import TreeViewNode from './tree-view-node.vue'
 import './tree-view.scss'
 
 export default {
   name: 'TreeView',
+  components: {
+    TreeViewNode, draggable
+  },
   data () {
     return {
-      expanded: ''
+      expandedPath: ''
     }
   },
   props: {
     data: {
+      type: Array,
       required: true
     },
     idField: {
       type: String,
       default: 'id'
     },
-    parentField: {
-      type: String,
-      default: 'parent'
-    },
     textField: {
       type: String,
       default: 'text'
+    },
+    childrenField: {
+      type: String,
+      default: 'children'
     },
     nodeTypeField: {
       type: String,
@@ -75,6 +80,10 @@ export default {
     iconField: {
       type: String,
       default: 'icon'
+    },
+    asyncLoadField: {
+      type: String,
+      default: 'asyncLoad'
     },
     sortable: {
       type: Boolean,
@@ -99,7 +108,7 @@ export default {
   },
   computed: {
     roots () {
-      return this.treefy()
+      return this.data
     },
     selectedPath () {
       return this.value
@@ -115,57 +124,25 @@ export default {
       } else {
         return {}
       }
+    },
+    sortableOptions () {
+      return ({
+        handle: '.handle-control'
+      })
+    }
+  },
+  watch: {
+    value: function (newValue) {
+      this.follow(newValue)  
     }
   },
   mounted () {
-    this.syncExpanded()
-  },
-  updated () {
-    this.syncExpanded()
+    this.follow(this.selectedPath)
   },
   methods: {
-    /*
-    treefy () {
-      const loops = 10
-      let data = _cloneDeep(this.data)
-      data.forEach((e, i) => {
-        e.ignored = true
-        e['__$sort'] = i
-      })
-      let root = {
-      }
-      let map = {}
-      map['root'] = result
-      for (let loop = 0; loop < loops; loop++) {
-        if (data.find(e => e.ignored)) {
-          data.forEach(e => {
-            if (e.ignored) {
-              let parentNode
-              if (String(e.parent) === String(this.rootId)) {
-                parentNode = map['root']
-              } else {
-                parentNode = map[String(e.parent)]
-              }
-              if (parentNode) {
-                if (!parentNode.children) {
-                  parentNode.children = []
-                }
-                parentNode.children.push(e)
-                if (parentNode.type === 'leaf') {
-                  parentNode.type = 'branch'
-                }
-                map[String(e.id)] = e
-                delete e.ignored
-              }
-            }
-          })
-        }
-      }
-      return result
-    },
-    */
     emitExpanded (e) {
-      this.expanded = e
+      this.expandedPath = e
+      console.log(this.expandedPath)
       this.$emit('expanded', e)
     },
     emitUpdate (e) {
@@ -177,9 +154,12 @@ export default {
     emitSelected (e) {
       this.$emit('input', e)
       this.$emit('selected', e)
+      this.follow(this.selectedPath)
     },
-    emitSort (e) {
-      this.$emit('sort', e)
+    childSorted (index, child) {
+      const newData = _cloneDeep(this.data)
+      newData[index] = _cloneDeep(child)
+      this.$emit('sorted', newData)
     },
     emitClick (e) {
       this.$emit('click', e)
@@ -188,19 +168,11 @@ export default {
       this.$emit('dblclick', e)
     },
     sorted (sort) {
-      const newData = _cloneDeep(this.roots)
-      newData[this.childrenField] = sort
-      this.$emit('sort', newData)
+      this.$emit('sorted', sort)
     },
-    syncExpanded () {
+    follow (path) {
+      this.expandedPath = path.split('/').slice(0, -1).join('/')
     },
-
-    expand (path) {
-      this.expanded = path
-    },
-  },
-  components: {
-    TreeViewNode
   }
 }
 </script>
